@@ -1,0 +1,428 @@
+---
+title: "Challenge_1: Data Import, Description, and Transformation(1)"
+author: "Sai Vineeth Kumar Dara"
+description: "Challenge 1 updated submission - for regrade"
+date: "09/20/2023"
+format:
+  html:
+    df-print: paged
+    css: "styles.css"
+    embed-resources: true
+    self-contained-math: true
+categories:
+  - weekly_challenges
+  - challenge_1
+---
+
+**Make sure you change the author's name in the above YAML header.**
+
+## Setup
+
+If you have not installed the following packages, please install them before loading them.
+
+```{r}
+# To install the packages
+#install.packages("tidyverse")
+#install.packages("haven")
+```
+
+```{r}
+#| label: setup
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(haven) #for loading other datafiles (SAS, STATA, SPSS, etc.)
+knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message=FALSE)
+library(readxl)
+library(dplyr)
+```
+
+## Challenge Overview
+
+This first weekly challenge aims to practice the following skill sets: 1. Read datasets in different file types; 2. Describe the datasets; 3. Exploring a few basic functions of data transformation and wrangling and present some descriptive statistics (such as min, max, and median).
+
+There will be coding components (reading datasets and data transformation) and writing components (describing the datasets and some statistical information). Please read the instructions for each part and complete your challenges.
+
+## Create your R quarto project and submit the standalone .html file.
+
+This will be demonstrated in Sep 20 and 21 lab meetings.
+
+## Datasets
+
+There are four datasets provided in this challenge. Please download the following dataset files from Canvas or Google Classroom and save them to a folder within your project working directory (i.e.: "yourworkingdiectory_data"). If you don't have a folder to store the datasets, please create one.
+
+-   babynames.csv (Required) ⭐
+-   ESS_5.dta (Option 1) ⭐
+-   p5v2018.sav (Option 2)⭐
+-   railroad.xlsx (Required)⭐⭐
+
+Find the `_data` folder, then use the correct R command to read the datasets.
+
+## Part 1(Required). The Baby Names Dataset
+
+1.  **Read the dataset "babynames.csv":**
+
+```{r}
+#Type your code here
+babynames = read.csv("./challenge1_data/babynames.csv")
+```
+
+2.  **Data Description: Please use the necessary commands and codes and briefly describe this data with a short writing paragraph answering the following questions.**
+
+    ```{r}
+    #Type your code here; and write a paragraph answering the questions.
+    # dimension of data:
+    dim(babynames)
+    # To see the first few rows of the data to understand what the data is about
+    head(babynames)
+    ```
+
+    \(1\) What is the dimension of the data (# of rows and columns)?\
+    Answer: The data has 2084710 rows and 4 columns.
+
+    \(2\) What do the rows and columns mean in this data?\
+    Answer: The data has 4 columns - name of the baby, sex of the baby, number of occurrences of the name and the year of observation.\
+    Basically the data gives information about - in a particular year, how many babies have the same name for a particular gender, that is they show this count for male and female babies separately.
+
+    \(3\) What is the unit of observation? In other words, what does each case mean in this data?\
+    Answer: Unit of Observation is a row/observation representing a unique case of study in the data table. In this table each row is a case and it tells us information about number of same gender babies that have the same name in a given year. For example first row tells us that - in year 1880, there are 7065 female babies with the name "Mary".
+
+    \(4\) According to the lecture, is this a "tidy" data?\
+    Answer: Yes. From the lecture we know that - Tidy data is a concept to describe data with a consistent form and clean structure with how it is stored. A tidy data is generally ready to be analyzed and visualized for many basic models. Coming to given data, we can observe that it has consistent and clean structure. Each row representing an observation/case and each column in the data table represent a variable giving particular information about the cases. So we can say that the given data "babynames" is tidy data.
+
+3.  **Data Transformation: use necessary commands and codes and answer the following questions.**
+
+    ```{r}
+    #Type your code here; and write a paragraph answering the questions.
+
+    # unique names - male, female, all:
+    # we can use unique or distinct to calculate the unique names 
+    # using unique
+    length(unique(babynames[babynames$Sex == "Male", ]$Name))
+    length(unique(babynames[babynames$Sex == "Female", ]$Name))
+    length(unique(babynames$Name))
+    #using distinct
+    #nrow(distinct(filter(babynames, Sex=="Male"), Name))
+    #nrow(distinct(filter(babynames, Sex=="Female"), Name))
+    #nrow(distinct(babynames, Name))
+
+
+    # number of years of data:
+    length(unique(babynames$Year))
+    #nrow(distinct(babynames, Year))
+
+
+    # summarizing Occurrence column
+    babynames %>% summarize(min_occ=min(Occurrences), mean_occ=mean(Occurrences), median_occ=median(Occurrences), max_occ=max(Occurrences))
+
+
+    # summarizing Occurrence column by decade
+    babynames %>% 
+      summarise(Occ=Occurrences, Decade=Year-(Year%%10)) %>%
+      group_by(Decade) %>%
+      summarise(Occurances_decade=sum(Occ)) %>%
+      summarise(min_occ_decade=min(Occurances_decade), mean_occ_decade=mean(Occurances_decade), median_occ_decade=median(Occurances_decade), max_occ_decade=max(Occurances_decade))
+    ```
+
+    \(1\) How many unique male names, unique female names, and total unique names are in the data?\
+    Answer:\
+    Male unique names = 43653\
+    Female unique names = 70225\
+    Total unique names = 102447
+
+    \(2\) How many years of names does this data record?\
+    Answer: 143 years of data recorded.
+
+    \(3\) Summarize the min, mean, median, and max of "Occurrence". (Must use summarize())\
+    Answer: min = 5, mean = 175.2112, median = 12, max = 99693
+
+    \(4\) (Optional) Summarize the min, mean, median, and max of "Occurrence" by decade.\
+    Answer: min = 2408032, mean = 24350971, median = 29368645, max = 39440656
+
+## Part 2. Choose One Option of Tasks to Complete
+
+**In this part, please choose either of the two datasets to complete the tasks.**
+
+## Optional 1: The European Social Survey Dataset
+
+The European Social Survey (ESS) is an academically-driven multi-country survey, which has been administered in over 30 countries to date. Its three aims are, firstly - to monitor and interpret changing public attitudes and values within Europe and to investigate how they interact with Europe's changing institutions, secondly - to advance and consolidate improved methods of cross-national survey measurement in Europe and beyond, and thirdly - to develop a series of European social indicators, including attitudinal indicators.
+
+In the fifth round, the survey covers 28 countries and investigates two major topics: Family Work and Wellbeing and Justice.
+
+1.  **Read the dataset "ESS_5.dta".**
+
+    ```{r}
+    #Type your code here
+    ess5_data_full = read_dta("./challenge1_data/ESS_5.dta")
+    ```
+
+<!-- -->
+
+2.  **Data Description: Please use the necessary commands and codes and briefly describe this data with a short writing paragraph answering the following questions.**
+
+    \(1\) What is the dimension of the data (# of rows and columns)?\
+    Answer: The data contains - 52458 rows and 696 columns
+
+    ```{r}
+    #Type your code here; and write a paragraph answering the questions.
+    dim(ess5_data_full)
+    head(ess5_data_full)
+    ```
+
+    As we can see, this data is very large. We don't want to study the whole data. Let's just reload the following selected columns: "idno, essroud, male, age, edu, income_10, eth_major, media (a standardized measure of the frequency of media consumption), and cntry".
+
+    ```{r}
+    #Type your code here; and write a paragraph answering the questions.
+    ess5_data <- select(ess5_data_full, idno, essround, male, age, edu, income_10, eth_major, media, cntry)
+
+    #dimension of reloaded data
+    dim(ess5_data)
+    head(ess5_data)
+    ```
+
+    \
+
+    (2) For the reloaded data, what do the rows and columns mean in this data?\
+        Answer: The new data has 52458 rows and 9 columns.\
+        Each row corresponds to an individual's survey report. And each column contains the information about the candidate collected in the survey. idno - ID given to that candidate, essround - round of survey - given 5th, male - code for gender of candidate - 0-female : 1-male , age - age of the candidate, edu - code for education level of candidate, income_10 - code for household's net income, eth_major - whether the candidate belongs to minority ethnic group in the country, media - a standardized measure of the frequency of a candidate's media consumption, cntry - country the candidate belongs to.
+
+    \(3\) What is the unit of observation? In other words, what does each case mean in this data?\
+    Answer: Each row is a case/observation. It gives information about a particular candidate's survey report like id, gender, education level, income, media utilization, country and other information relavant to the survey.
+
+    \(4\) According to the lecture, is this a "tidy" data?\
+    Answer: Yes. The data is well structured and clear. Each row represents an individual's report and each column represents a variable, giving information about the candidate like id, age, country etc. Even though the data has NA values we can still call it tidy data.
+
+3.  **Data Transformation: use necessary commands and codes and answer the following questions.**
+
+    ```{r}
+    #Type your code here; and write a paragraph answering the questions.
+    # Here I am considering only the partial data that we created above and not the complete data 
+
+    # unique countries
+    length(unique(ess5_data$cntry))
+
+    #summarise data
+    ess5_data %>% summarise(min_age=min(age, na.rm = T), max_age=max(age, na.rm = T), average_age=mean(age, na.rm = T), min_edu=min(edu, na.rm = T), max_edu=max(edu, na.rm = T), average_edu=mean(edu, na.rm = T), min_media=min(media, na.rm = T), max_media=max(media, na.rm = T), average_media=mean(media, na.rm = T))
+
+    # eth_major and income_10 NA values count:
+    colSums(is.na(select(ess5_data, eth_major)))
+    colSums(is.na(select(ess5_data, income_10)))
+    ```
+
+    \(1\) How many unique countries are in the data?\
+    Answer: There are 27 unique countries in the reloaded data.
+
+    \(2\) What are the range and average of the following variables: "age", "edu", and "media"? Must use summarize().\
+    Answer: we are using na.rm = T to remove the NA values from our calculations\
+    age range = \[14, 101\], average = 47.91529\
+    edu range = \[1, 4\], average = 2.767531\
+    media range = \[0, 1\], average = 0.4786802
+
+    \(3\) How many missing data (NA) are in the following variables: "eth_major" and "income_10"? (tips: use is.na())\
+    Answer:\
+    In eth_major column there are 1310 entries with NA values\
+    In income_10 column there are 12620 entries with NA values
+
+## Optional 2: Polity V Data
+
+The Polity data series is a data series in political science research. Polity is among prominent datasets that measure democracy and autocracy. The Polity5 dataset covers all major, independent states in the global system over the period 1800-2018 (i.e., states with a total population of 500,000 or more in the most recent year; currently 167 countries with Polity5 refinements completed for about half those countries).
+
+1.  **Read the dataset "p5v2018.sav".**
+
+    ```{r}
+    #Type your code here
+    polityv_data_full <- read_sav("./challenge1_data/p5v2018.sav")
+    ```
+
+<!-- -->
+
+2.  **Data Description: Please use the necessary commands and codes and briefly describe this data with a short writing paragraph answering the following questions.**
+
+    ```{r}
+    #Type your code here; and write a paragraph answering the questions.
+    dim(polityv_data_full)
+    head(polityv_data_full)
+    ```
+
+    \(1\) What is the dimension of the data (# of rows and columns)?\
+    Answer: There are 17574 rows and 37 columns in the data.
+
+    As we can see, this data contains many columns. We don't want to study the whole data. Let's keep the first seven columns and the ninth and ten columns.
+
+    ```{r}
+    #Type your code here; and write a paragraph answering the questions.
+    polityv_data <- subset(polityv_data_full, select = c(1:7,9, 10) )
+    ```
+
+    \(2\) For the reloaded data, what do the rows mean in this data? What do the columns (#2-#8) mean? (If you have questions, check out [p.11-16 of the User Manual/Codebook of the dataset](https://www.systemicpeace.org/inscr/p5manualv2018.pdf)).\
+    Answer: The data has 17574 rows and 9 columns.\
+    Each row gives information about a country's democracy and autocracy measures in a particular year.\
+    The columns gives information about the country, the year of record, and measures. cyear - country year: a unique identifier for each country year, ccode - a country's assigned numeric code, scode - a country's assigned alpha code, country - name of the country, year - year of record, flag - confidence of measures, democ - the democracy index/score, autoc - the autocracy index/code.
+
+    \(3\) What is the unit of observation? In other words, what does each case mean in this data?\
+    Answer: Each row in the data is a case/observation. It gives information about a country's democracy and autocracy measures in a particular year.
+
+    \(4\) According to the lecture, is this a "tidy" data?\
+    Answer: Yes, the data is tidy data since it is well structured and clear. Each row is a case giving information about a country's democracy and autocracy measures and each column is a variable representing some information about the country, the year of record, measures etc.\
+
+3.  **Data Transformation: use necessary commands and codes and answer the following questions.**
+
+    ```{r}
+    #Type your code here; and write a paragraph answering the questions.
+    # unique countries
+    length(unique(polityv_data$country))
+
+    # unique years
+    length(unique(polityv_data$year))
+
+    # range and average of democ and autoc
+    polityv_data %>% 
+      filter(democ >= 0) %>%
+      summarise(democ_min=min(democ), democ_max=max(democ), democ_mean=mean(democ))
+
+    polityv_data %>% 
+      filter(autoc >= 0) %>%
+      summarise(autoc_min=min(autoc), autoc_max=max(autoc), autoc_mean=mean(autoc))
+
+
+    # democ and autoc NA values count:
+    colSums(is.na(select(polityv_data, democ)))
+    colSums(is.na(select(polityv_data, autoc)))
+    # if we consider -88,-77,-66 as missing values too then the missing values count will be as follows:
+    #length(which(polityv_data$democ == -88 | polityv_data$democ == -77 |polityv_data$democ == -66))
+
+    #length(which(polityv_data$autoc == -88 | polityv_data$autoc == -77 |polityv_data$autoc == -66))
+    ```
+
+    \(1\) How many unique countries are in the data?\
+    Answer: 195
+
+    \(2\) How many years does this data record?\
+    Answer: 245
+
+    \(3\) What are the range and average of the following variables: "democ" and "autoc"?\
+    Answer:\
+    We filter values \>= 0 and use them to find the required data. ( we are using \>=0 condition because it was clear from the data that all the values are \>=0 except for -88,-77,-66 so we can use this condition without the fear of losing any other important data.\
+    democ range: \[0,10\]\
+    democ average: 3.501163\
+    autoc range: \[0,10\]\
+    autoc average: 4.02195
+
+    \*\* Noted that in this data, negative integers (-88, -77, and -66) represent special cases. You should exclude them when calculating the range, average, and NAs.
+
+    \(4\) How many missing data (NA) are in the following variables: "democ" and "autoc"? (tips: use is.na())\
+    Number of NA values in democ: 0\
+    Number of NA values in autoc : 0
+
+## Part 3. The Railroad Employee Data
+
+1.  **Read the dataset "railroads.xls".**
+
+    Many government organizations still use Excel spreadsheets to store data. This railroad dataset, published by the Railroad Retirement Board, is a typical example. It records the number of employees in each county and state in 2012.
+
+    **Please load the data in R in a clean manner. You can start by doing the following things step by step.**
+
+    \(1\) Read the first sheet of the Excel file;
+
+    \(2\) Skipping the title rows;
+
+    \(3\) Removing empty columns
+
+    \(4\) Filtering "total" rows
+
+    \(5\) Remove the table notes (the last two rows)
+
+    ```{r}
+    #Type your code here
+    library(readxl)
+    library(dplyr)
+
+    #1,2 loading the data and skipping the title rows
+    railroads_data <- read_excel("./challenge1_data/railroads.xls", sheet = 1, skip = 2)
+
+    #3 removing the empty columns
+    railroads <- railroads_data[-c(2,4)]
+
+    # removing the empty rows
+    railroads <- railroads[!apply(is.na(railroads) | railroads == "", 1, all),]
+
+    #4 removing rows which contain "Total" in them
+    railroads <- railroads %>% filter(!grepl('Total', STATE))
+
+    #5 removing the last 3 rows - table notes, can do my mentioning row numbers specifically or by using filter method
+    railroads <- railroads %>% filter(row_number() <= n()-3)
+    #railroads <- railroads[-(2987:2990),] 
+    ```
+
+<!-- -->
+
+2.  **Data Description: Please use the necessary commands and codes and briefly describe this data with a short writing paragraph answering the following questions.**
+
+    ```{r}
+    #Type your code here; and write a paragraph answering the questions.
+
+    # dimension of data
+    dim(railroads)
+
+    # viewing initial few lines of data to understand what the data is about
+    head(railroads)
+    ```
+
+    \(1\) What is the dimension of the data (# of rows and columns)?\
+    Answer: Considering we removed all the empty rows, empty columns, rows with 'Total' in them, rows corresponding to table notes.\
+    The cleaned data has 2930 rows and 3 columns.
+
+    \(2\) What do the rows and columns mean?\
+    Answer: There are 3 columns - State - gives alpha code of state, County - name of a county from the state and Total ( representing the number of employees). Each row gives us information about number of rail road employees in a particular county of a state.
+
+    \(3\) What is the unit of observation? In other words, what does each case mean in this data?\
+    Answer: In this data, each row is a case that is an unit of observation which gives us information about a particular county, the state it belongs to and the total number of rail road employees in that particular county.
+
+    \(4\) According to the lecture, is this a "tidy" data?\
+    Answer: Yes. The initial data is not clean, but once we made the necessary changes to the loaded data, the new data formed is a clean and structured data. Each row is an observation and each column is a variable giving some information about each observation. So yes, the modified data is a tidy data.\
+
+3.  **Data Transformation: use necessary commands and codes and answer the following questions.**
+
+    ```{r}
+    #Type your code here; and write a paragraph answering the questions.
+
+    #1 unique states and counties
+    length(unique(railroads$STATE))
+    length(unique(railroads$COUNTY))
+
+    #2 total number of employees
+    railroads %>%
+      summarise(total_emp = sum(TOTAL))
+
+    #3 min, max, mean and median of total_employees
+    railroads %>% summarize(min=min(TOTAL), mean=mean(TOTAL), median=median(TOTAL), max=max(TOTAL))
+
+    #4 counties and states with most employees: here list given in desc order 
+    arrange(railroads, desc(TOTAL))
+
+    railroads %>% 
+      group_by(STATE) %>%
+      summarise(sumTotal=sum(TOTAL)) %>%
+      arrange(desc(sumTotal), .by_group=TRUE)
+    ```
+
+    \(1\) How many unique counties and states are in the data? (tips: you can try using the across() function to do an operation on two columns at the same time)\
+    Answer:\
+    Number of unique states = 53\
+    Number of unique counties = 1709
+
+    \(2\) What is the total number of employees (total_employees) in this data?\
+    Answer: total number of employees in this data = 255432
+
+    \(3\) What are the min, max, mean, and median of "total_employees"\
+    Answer:\
+    min = 1\
+    mean = 87.17816\
+    median = 21\
+    max = 8207
+
+    \(4\) Which states have the most employees? And which countries have the most employees? (tips: use group_by() and arrange())\
+    Answer:\
+    Top 5 Counties with the most employees = "COOK" - IL, "TARRANT"-TX, "DOUGLAS"-NE, "SUFFOLK"-NY, "INDEPENDENT CITY"-VA.\
+    Top 5 States with the most employees = "TX", "IL", "NY", "NE", "CA".
